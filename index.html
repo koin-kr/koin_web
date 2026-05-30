@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: #000; }
-.phone { width: 100%; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; position: relative; background: #000; }
+html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: #fff; }
+.phone { width: 100%; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; position: relative; background: #fff; }
 
 .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #fff; border-bottom: 1px solid #eee; flex-shrink: 0; z-index: 10; }
 .logo-wrap { display: flex; align-items: center; gap: 8px; }
@@ -23,13 +23,30 @@ html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif;
 .store-btn-name { font-size: 11px; font-weight: 600; color: #1a6bbf; }
 
 .camera-screen { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-.camera-area { flex: 1; position: relative; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.camera-area { flex: 1; position: relative; background: #f5f7fa; display: flex; align-items: center; justify-content: flex-start; flex-direction: column; overflow: hidden; }
 #videoEl { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
 #canvasEl { display: none; }
-.placeholder { display: flex; flex-direction: column; align-items: center; gap: 14px; color: rgba(255,255,255,0.7); z-index: 2; text-align: center; padding: 24px; }
-.placeholder-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 32px; }
-.placeholder p { font-size: 14px; line-height: 1.6; }
-.start-btn { margin-top: 4px; padding: 13px 32px; background: #3D8FE0; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+/* ── Language selection screen ── */
+/* ── Inline language picker ── */
+.lang-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; padding-bottom: 4px; }
+.lang-bar-wrap .lang-bar-label { font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 0.8px; text-transform: uppercase; }
+.lang-bar { display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: nowrap; width: 100%; }
+.lang-btn-pill { display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid #dce6fb; border-radius: 8px; padding: 5px 7px; cursor: pointer; transition: all 0.15s; }
+.lang-btn-pill:hover { border-color: #3D8FE0; color: #1a2340; }
+.lang-btn-pill.active { border-color: #3D8FE0; box-shadow: 0 0 0 2px #3D8FE0; }
+.lang-btn-pill .flag-img { width: 36px; height: 26px; border-radius: 4px; object-fit: cover; display: block; }
+
+/* ── Camera placeholder ── */
+.placeholder { display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 2; text-align: center; padding: 20px 24px; width: 100%; }
+.placeholder-icon { display: none; }
+.placeholder-hint { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.hint-section-title { font-size: 11px; font-weight: 700; color: #999; letter-spacing: 0.6px; text-transform: uppercase; text-align: center; width: 100%; margin-bottom: 0; margin-top: 20px; }
+.hint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.hint-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #f0f4ff; border-radius: 14px; padding: 14px 10px; text-align: center; }
+.hint-card .hint-icon { font-size: 26px; line-height: 1; }
+.hint-card .hint-text { font-size: 12px; font-weight: 600; color: #2a3a6e; line-height: 1.3; }
+.start-btn { margin-top: 4px; padding: 14px 36px; background: #3D8FE0; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(61,143,224,0.35); }
+.lang-change-btn { display: none; }
 
 .scan-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 200px; height: 200px; z-index: 3; pointer-events: none; display: none; }
 .scan-overlay.active { display: block; }
@@ -112,9 +129,19 @@ html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif;
       <video id="videoEl" autoplay playsinline muted></video>
       <canvas id="canvasEl"></canvas>
       <div class="placeholder" id="placeholder">
-        <div class="placeholder-icon">📷</div>
-        <p>Point your camera at any<br>Korean sign, menu, or landmark</p>
+        <div class="lang-bar-wrap">
+          <span class="lang-bar-label">Language</span>
+          <div class="lang-bar" id="langBar">
+            <button class="lang-btn-pill active" data-lang="en"><img class="flag-img" src="https://flagcdn.com/w40/us.png" alt="EN"></button>
+            <button class="lang-btn-pill" data-lang="zh"><img class="flag-img" src="https://flagcdn.com/w40/cn.png" alt="ZH"></button>
+            <button class="lang-btn-pill" data-lang="ja"><img class="flag-img" src="https://flagcdn.com/w40/jp.png" alt="JA"></button>
+            <button class="lang-btn-pill" data-lang="vi"><img class="flag-img" src="https://flagcdn.com/w40/vn.png" alt="VI"></button>
+            <button class="lang-btn-pill" data-lang="ko"><img class="flag-img" src="https://flagcdn.com/w40/kr.png" alt="KO"></button>
+          </div>
+        </div>
+        <div class="placeholder-hint" id="hintRows"></div>
         <button class="start-btn" id="startBtn">Start camera</button>
+        <button class="lang-change-btn" id="changeLangBtn">Change language</button>
       </div>
       <div class="scan-overlay" id="scanOverlay">
         <div class="corner tl"></div><div class="corner tr"></div>
@@ -173,9 +200,107 @@ html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif;
 
 <script>
 const PROXY_URL = 'https://koin-gemini-proxy.koreainsiderapp.workers.dev';
-const PROMPT = `You are a helpful guide for foreign tourists visiting Korea. Analyze this image and respond in this exact JSON format (no markdown, no backticks):
-{"emoji":"<one relevant emoji>","title":"<emoji + short title: translation or place name, max 10 words>","body":"<explanation with sections. Use line breaks between sections. Include what this is, key highlights, and how to get there if relevant. Keep it practical for tourists."}`;
+const USED_KEY = 'koin_used';
 
+const LANG_CONFIG = {
+  en: {
+    prompt: `You are a helpful guide for foreign tourists visiting Korea. Analyze this image and respond in this exact JSON format (no markdown, no backticks):
+{"emoji":"<one relevant emoji>","title":"<emoji + short title: translation or place name, max 10 words>","body":"<explanation with sections. Use line breaks between sections. Include what this is, key highlights, and how to get there if relevant. Keep it practical for tourists."}`,
+    hints: [
+      { icon: '🍜', text: 'Food menus' },
+      { icon: '🪧', text: 'Signs' },
+      { icon: '💄', text: 'Cosmetics & products' },
+      { icon: '🏯', text: 'Landmarks' },
+    ],
+    startBtn: 'Start camera',
+    loading: 'Analyzing...',
+    error: 'Camera access denied. Use the gallery button to upload a photo.',
+    errorCapture: 'Tap "Start camera" first.',
+    errorNetwork: 'Network error. Please try again.',
+    changeLang: 'Change language',
+    usedTitle: 'Download KOIN for unlimited access',
+    usedBody: 'You\'ve used your free scan. Download the app to keep exploring Korea!',
+    usedBtn: 'Download for free →',
+  },
+  zh: {
+    prompt: `您是一位为外国游客提供服务的韩国旅游向导。请分析这张图片，并用以下JSON格式以中文回答（不含Markdown，不含反引号）:
+{"emoji":"<一个相关的emoji>","title":"<emoji + 简短标题：翻译或地名，最多10个字>","body":"<分段说明。各段之间使用换行。包括这是什么、主要亮点，以及如有必要说明如何前往。对游客实用。>"}`,
+    hints: [
+      { icon: '🍜', text: '餐厅菜单' },
+      { icon: '🪧', text: '指示牌' },
+      { icon: '💄', text: '化妆品 & 商品' },
+      { icon: '🏯', text: '地标' },
+    ],
+    startBtn: '启动相机',
+    loading: '分析中...',
+    error: '相机访问被拒绝。请使用图库按钮上传照片。',
+    errorCapture: '请先点击"启动相机"。',
+    errorNetwork: '网络错误，请重试。',
+    changeLang: '更换语言',
+    usedTitle: '下载 KOIN，无限次使用',
+    usedBody: '您已使用免费扫描次数。下载 App 继续探索韩国！',
+    usedBtn: '免费下载 →',
+  },
+  ja: {
+    prompt: `あなたは韓国を訪問する外国人観光客のための案内人です。この画像を分析し、以下のJSON形式で日本語で回答してください（マークダウンなし、バッククォートなし）:
+{"emoji":"<関連する絵文字1つ>","title":"<絵文字 + 短いタイトル：翻訳または場所名、最大10語>","body":"<セクションごとの説明。セクション間は改行を使用。これが何か、主なポイント、必要であれば行き方を含める。観光客向けに実用的に。>"}`,
+    hints: [
+      { icon: '🍜', text: 'メニュー' },
+      { icon: '🪧', text: '看板' },
+      { icon: '💄', text: 'コスメ & 商品' },
+      { icon: '🏯', text: 'ランドマーク' },
+    ],
+    startBtn: 'カメラを起動',
+    loading: '分析中...',
+    error: 'カメラへのアクセスが拒否されました。ギャラリーボタンから写真をアップロードしてください。',
+    errorCapture: '先に「カメラを起動」をタップしてください。',
+    errorNetwork: 'ネットワークエラー。もう一度お試しください。',
+    changeLang: '言語を変更',
+    usedTitle: 'KOINをダウンロードして無制限に利用',
+    usedBody: '無料スキャンをご利用いただきました。アプリをダウンロードして韓国をもっと探索しましょう！',
+    usedBtn: '無料でダウンロード →',
+  },
+  vi: {
+    prompt: `Bạn là hướng dẫn viên du lịch hữu ích cho khách du lịch nước ngoài đến thăm Hàn Quốc. Phân tích hình ảnh này và trả lời bằng định dạng JSON chính xác sau đây (không có markdown, không có dấu backtick):
+{"emoji":"<một emoji phù hợp>","title":"<emoji + tiêu đề ngắn: dịch thuật hoặc tên địa điểm, tối đa 10 từ>","body":"<giải thích theo từng phần. Dùng xuống dòng giữa các phần. Bao gồm đây là gì, điểm nổi bật chính, và cách đến nơi nếu có liên quan. Thực tế cho khách du lịch.>"}`,
+    hints: [
+      { icon: '🍜', text: 'Thực đơn' },
+      { icon: '🪧', text: 'Biển hiệu' },
+      { icon: '💄', text: 'Mỹ phẩm & sản phẩm' },
+      { icon: '🏯', text: 'Địa danh' },
+    ],
+    startBtn: 'Bật camera',
+    loading: 'Đang phân tích...',
+    error: 'Truy cập camera bị từ chối. Hãy dùng nút thư viện để tải ảnh lên.',
+    errorCapture: 'Hãy nhấn "Bật camera" trước.',
+    errorNetwork: 'Lỗi mạng. Vui lòng thử lại.',
+    changeLang: 'Đổi ngôn ngữ',
+    usedTitle: 'Tải KOIN để sử dụng không giới hạn',
+    usedBody: 'Bạn đã dùng lượt quét miễn phí. Tải app để tiếp tục khám phá Hàn Quốc!',
+    usedBtn: 'Tải miễn phí →',
+  },
+  ko: {
+    prompt: `당신은 한국을 방문하는 외국인 관광객을 돕는 안내원입니다. 이 이미지를 분석하고 다음 JSON 형식으로 한국어로 답하세요 (마크다운 없이, 백틱 없이):
+{"emoji":"<관련 이모지 하나>","title":"<이모지 + 짧은 제목: 번역 또는 장소명, 최대 10단어>","body":"<섹션별 설명. 섹션 사이에는 줄바꿈 사용. 이것이 무엇인지, 주요 특징, 관련이 있으면 찾아가는 방법 포함. 관광객에게 실용적으로.>"}`,
+    hints: [
+      { icon: '🍜', text: '음식 메뉴판' },
+      { icon: '🪧', text: '표지판' },
+      { icon: '💄', text: '화장품 & 상품' },
+      { icon: '🏯', text: '랜드마크' },
+    ],
+    startBtn: '카메라 시작',
+    loading: '분석 중...',
+    error: '카메라 접근이 거부되었습니다. 갤러리 버튼으로 사진을 업로드해 주세요.',
+    errorCapture: '먼저 "카메라 시작"을 탭하세요.',
+    errorNetwork: '네트워크 오류. 다시 시도해 주세요.',
+    changeLang: '언어 변경',
+    usedTitle: 'KOIN 앱 다운로드하고 무제한으로 사용하세요',
+    usedBody: '무료 스캔을 사용하셨습니다. 앱을 다운로드하고 한국을 더 탐험해보세요!',
+    usedBtn: '무료로 다운로드 →',
+  }
+};
+
+let currentLang = 'en';
 let stream = null, facingMode = 'environment';
 const video = document.getElementById('videoEl');
 const canvas = document.getElementById('canvasEl');
@@ -187,6 +312,59 @@ const resultScreen = document.getElementById('resultScreen');
 const resultBg = document.getElementById('resultBg');
 const errorMsg = document.getElementById('errorMsg');
 
+// ── Render hint cards ─────────────────────────────────────────────────────────
+function renderHints(lang) {
+  const cfg = LANG_CONFIG[lang];
+  const hintRows = document.getElementById('hintRows');
+  const titles = { en: 'What you can scan with AI Camera', zh: 'AI相机可以扫描的内容', ja: 'AIカメラでスキャンできるもの', vi: 'Những gì AI Camera có thể quét', ko: 'AI 카메라로 찍을 수 있는 것들' };
+  hintRows.innerHTML = `<div class="hint-section-title">${titles[lang]}</div><div class="hint-grid">` + cfg.hints.map(h =>
+    `<div class="hint-card"><span class="hint-icon">${h.icon}</span><span class="hint-text">${h.text}</span></div>`
+  ).join('') + '</div>';
+  document.getElementById('startBtn').textContent = cfg.startBtn;
+  document.querySelector('.loading-text').textContent = cfg.loading;
+}
+
+// ── Inline language picker ────────────────────────────────────────────────────
+document.querySelectorAll('.lang-btn-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHints(currentLang);
+  });
+});
+
+// ── One-use lock ──────────────────────────────────────────────────────────────
+function isUsed() { return sessionStorage.getItem(USED_KEY) === '1'; }
+function markUsed() { sessionStorage.setItem(USED_KEY, '1'); }
+
+function showUsedScreen() {
+  const cfg = LANG_CONFIG[currentLang];
+  document.getElementById('resultTitle').textContent = cfg.usedTitle;
+  document.getElementById('resultBody').textContent = cfg.usedBody;
+  const dlBtn = document.querySelector('.full-download-btn');
+  if (dlBtn) dlBtn.textContent = cfg.usedBtn;
+  resultScreen.classList.add('visible');
+  disableControls();
+}
+
+function disableControls() {
+  document.getElementById('shutterBtn').disabled = true;
+  document.getElementById('shutterBtn').style.opacity = '0.35';
+  document.getElementById('flipBtn').disabled = true;
+  document.getElementById('flipBtn').style.opacity = '0.35';
+  const galleryLabel = document.querySelector('.btn-gallery');
+  if (galleryLabel) { galleryLabel.style.opacity = '0.35'; galleryLabel.style.pointerEvents = 'none'; }
+  document.getElementById('fileInput').disabled = true;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').style.opacity = '0.35';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderHints('en');
+  if (isUsed()) { showUsedScreen(); }
+});
+
 document.getElementById('startBtn').addEventListener('click', startCamera);
 document.getElementById('shutterBtn').addEventListener('click', capture);
 document.getElementById('flipBtn').addEventListener('click', flipCamera);
@@ -195,13 +373,14 @@ document.getElementById('thumbUp').addEventListener('click', function(){ this.cl
 document.getElementById('thumbDown').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('thumbUp').classList.remove('active'); });
 
 async function startCamera() {
+  if (isUsed()) { showUsedScreen(); return; }
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
     video.srcObject = stream;
     placeholder.style.display = 'none';
     scanOverlay.classList.add('active');
     errorMsg.style.display = 'none';
-  } catch(e) { showError('Camera access denied. Use the gallery button to upload a photo.'); }
+  } catch(e) { showError(LANG_CONFIG[currentLang].error); }
 }
 
 async function flipCamera() {
@@ -210,7 +389,8 @@ async function flipCamera() {
 }
 
 async function capture() {
-  if (!stream) { showError('Tap "Start camera" first.'); return; }
+  if (isUsed()) { showUsedScreen(); return; }
+  if (!stream) { showError(LANG_CONFIG[currentLang].errorCapture); return; }
   canvas.width = video.videoWidth; canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
@@ -219,6 +399,7 @@ async function capture() {
 }
 
 async function handleFile(e) {
+  if (isUsed()) { showUsedScreen(); return; }
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = async (ev) => {
@@ -229,6 +410,7 @@ async function handleFile(e) {
 }
 
 async function analyze(base64) {
+  const PROMPT = LANG_CONFIG[currentLang].prompt;
   scanOverlay.classList.remove('active');
   loadingOverlay.classList.add('active');
   try {
@@ -244,8 +426,10 @@ async function analyze(base64) {
     document.getElementById('resultTitle').textContent = parsed.title || '';
     document.getElementById('resultBody').textContent = parsed.body || '';
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    markUsed();
+    disableControls();
     resultScreen.classList.add('visible');
-  } catch(e) { showError('Network error. Please try again.'); scanOverlay.classList.add('active'); }
+  } catch(e) { showError(LANG_CONFIG[currentLang].errorNetwork); scanOverlay.classList.add('active'); }
   finally { loadingOverlay.classList.remove('active'); }
 }
 
@@ -255,4 +439,3 @@ function showError(msg) {
 }
 </script>
 </body>
-</html>
