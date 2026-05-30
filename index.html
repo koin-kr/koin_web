@@ -1,0 +1,557 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .phone {
+    font-family: 'DM Sans', sans-serif;
+    background: #f5f7fa;
+    max-width: 380px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+  }
+
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #5BAFF5, #3D8FE0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .logo-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+  }
+
+  .top-badge {
+    font-size: 11px;
+    color: #3D8FE0;
+    background: #EBF4FE;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .camera-area {
+    flex: 1;
+    position: relative;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 380px;
+  }
+
+  #videoEl {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  #canvasEl { display: none; }
+
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.5);
+    z-index: 2;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .placeholder i { font-size: 44px; color: rgba(255,255,255,0.3); }
+  .placeholder p { font-size: 14px; line-height: 1.5; }
+
+  .start-btn {
+    margin-top: 4px;
+    padding: 12px 28px;
+    background: #3D8FE0;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  .scan-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 200px;
+    z-index: 3;
+    pointer-events: none;
+    display: none;
+  }
+
+  .scan-overlay.active { display: block; }
+
+  .corner {
+    position: absolute;
+    width: 24px; height: 24px;
+    border-color: #fff;
+    border-style: solid;
+    border-width: 0;
+  }
+  .corner.tl { top:0;left:0;border-top-width:2.5px;border-left-width:2.5px;border-radius:4px 0 0 0; }
+  .corner.tr { top:0;right:0;border-top-width:2.5px;border-right-width:2.5px;border-radius:0 4px 0 0; }
+  .corner.bl { bottom:0;left:0;border-bottom-width:2.5px;border-left-width:2.5px;border-radius:0 0 0 4px; }
+  .corner.br { bottom:0;right:0;border-bottom-width:2.5px;border-right-width:2.5px;border-radius:0 0 4px 0; }
+
+  .scan-line {
+    position: absolute;
+    left: 8px; right: 8px;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    animation: scan 2s ease-in-out infinite;
+    top: 8px;
+  }
+
+  @keyframes scan {
+    0% { top: 8px; opacity: 1; }
+    100% { top: 184px; opacity: 0.2; }
+  }
+
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.92);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 20;
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #3D8FE0;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: #555; font-family: 'DM Sans', sans-serif; }
+
+  .result-screen {
+    display: none;
+    flex-direction: column;
+    background: #f5f7fa;
+    flex: 1;
+  }
+
+  .result-screen.visible { display: flex; }
+
+  .result-img-preview {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .result-card {
+    margin: 16px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #eee;
+  }
+
+  .result-emoji { font-size: 28px; margin-bottom: 8px; display: block; }
+
+  .result-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  .result-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .helpful-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .helpful-label {
+    font-size: 12px;
+    color: #999;
+    flex: 1;
+  }
+
+  .thumb-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.15s;
+  }
+
+  .thumb-btn.active, .thumb-btn:hover { background: #EBF4FE; border-color: #3D8FE0; }
+
+  .used-notice {
+    margin: 0 16px;
+    background: #FFF8EC;
+    border: 1px solid #FFE0A0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .used-notice i { color: #E8A000; font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+
+  .used-notice-text { font-size: 13px; color: #7A5500; line-height: 1.5; }
+  .used-notice-text strong { color: #5A3A00; font-weight: 600; }
+
+  .download-btn {
+    margin: 14px 16px 8px;
+    width: calc(100% - 32px);
+    padding: 15px;
+    background: #3D8FE0;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .retry-link {
+    text-align: center;
+    padding: 10px 16px 24px;
+    font-size: 13px;
+    color: #3D8FE0;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+  }
+
+  .controls {
+    padding: 18px 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-top: 1px solid #eee;
+  }
+
+  .btn-circle {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: #f0f0f0;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #333;
+    font-size: 20px;
+  }
+
+  .btn-shutter {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: #3D8FE0;
+    border: 4px solid #c8e0f8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+  }
+
+  .btn-shutter:active { transform: scale(0.95); }
+  .btn-shutter i { color: #fff; font-size: 24px; }
+
+  .error-msg {
+    font-size: 12px;
+    color: #c0392b;
+    text-align: center;
+    padding: 6px 16px;
+    background: #fff;
+    display: none;
+  }
+
+  #fileInput { display: none; }
+</style>
+
+<div class="phone">
+  <div class="top-bar">
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <img src="/mnt/user-data/uploads/koin-logo-.png" alt="KOIN logo" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-size:18px\'>🪙</span>'">
+      </div>
+      <span class="logo-text">KOIN</span>
+    </div>
+    <div class="top-badge">Point & discover Korea</div>
+  </div>
+
+  <div class="camera-area" id="cameraArea">
+    <video id="videoEl" autoplay playsinline muted></video>
+    <canvas id="canvasEl"></canvas>
+
+    <div class="placeholder" id="placeholder">
+      <i class="ti ti-camera" aria-hidden="true"></i>
+      <p>Point your camera at any<br>Korean sign, menu, or landmark</p>
+      <button class="start-btn" id="startBtn">Start camera</button>
+    </div>
+
+    <div class="scan-overlay" id="scanOverlay">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <div class="scan-line"></div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Analyzing...</div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="controls" id="controlsBar">
+    <label class="btn-circle" for="fileInput" title="Upload photo">
+      <i class="ti ti-photo" aria-hidden="true"></i>
+    </label>
+    <button class="btn-shutter" id="shutterBtn" title="Take photo">
+      <i class="ti ti-camera" aria-hidden="true"></i>
+    </button>
+    <button class="btn-circle" id="flipBtn" title="Flip camera">
+      <i class="ti ti-switch-horizontal" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*">
+
+  <div class="result-screen" id="resultScreen">
+    <img id="resultImg" class="result-img-preview" src="" alt="Captured image">
+    <div class="result-card">
+      <span class="result-emoji" id="resultEmoji">📍</span>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-body" id="resultBody"></div>
+      <div class="helpful-row">
+        <span class="helpful-label">Was this helpful?</span>
+        <button class="thumb-btn" id="thumbUp" title="Yes">👍</button>
+        <button class="thumb-btn" id="thumbDown" title="No">👎</button>
+      </div>
+    </div>
+
+    <div class="used-notice">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      <div class="used-notice-text">
+        <strong>You've used your free scan.</strong><br>
+        Download KOIN to get unlimited scans, community, and local curation.
+      </div>
+    </div>
+
+    <button class="download-btn" onclick="openLink('https://koreainsider.com')">
+      <i class="ti ti-download" aria-hidden="true"></i>
+      Download KOIN — it's free
+    </button>
+
+    <button class="retry-link" id="retryBtn">← Scan another</button>
+  </div>
+</div>
+
+<script>
+const GEMINI_KEY = 'YOUR_GEMINI_API_KEY';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
+const PROMPT = `You are a helpful guide for foreign tourists visiting Korea.
+Analyze this image and respond in this exact JSON format (no markdown, no backticks):
+{
+  "emoji": "<one relevant emoji>",
+  "title": "<short title: translation or place name>",
+  "body": "<2-4 sentences: translation of any Korean text, what this is, and useful travel context>"
+}
+If there is no Korean text, describe what you see and give relevant travel tips.`;
+
+let stream = null;
+let facingMode = 'environment';
+let hasUsed = false;
+
+const video = document.getElementById('videoEl');
+const canvas = document.getElementById('canvasEl');
+const placeholder = document.getElementById('placeholder');
+const scanOverlay = document.getElementById('scanOverlay');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const resultScreen = document.getElementById('resultScreen');
+const cameraArea = document.getElementById('cameraArea');
+const controlsBar = document.getElementById('controlsBar');
+const errorMsg = document.getElementById('errorMsg');
+
+document.getElementById('startBtn').addEventListener('click', startCamera);
+document.getElementById('shutterBtn').addEventListener('click', capture);
+document.getElementById('flipBtn').addEventListener('click', flipCamera);
+document.getElementById('retryBtn').addEventListener('click', retry);
+document.getElementById('fileInput').addEventListener('change', handleFile);
+document.getElementById('thumbUp').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('thumbDown').classList.remove('active'); });
+document.getElementById('thumbDown').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('thumbUp').classList.remove('active'); });
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
+    video.srcObject = stream;
+    placeholder.style.display = 'none';
+    scanOverlay.classList.add('active');
+    errorMsg.style.display = 'none';
+  } catch(e) {
+    showError('Camera access denied. Use the gallery button instead.');
+  }
+}
+
+async function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  if (stream) { stream.getTracks().forEach(t => t.stop()); await startCamera(); }
+}
+
+function retry() {
+  if (hasUsed) {
+    showError('Download the app for unlimited scans!');
+    return;
+  }
+  resultScreen.classList.remove('visible');
+  cameraArea.style.display = 'flex';
+  controlsBar.style.display = 'flex';
+  scanOverlay.classList.add('active');
+}
+
+async function capture() {
+  if (!stream) { showError('Start the camera first.'); return; }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  document.getElementById('resultImg').src = dataUrl;
+  await analyze(dataUrl.split(',')[1]);
+}
+
+async function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    document.getElementById('resultImg').src = ev.target.result;
+    await analyze(ev.target.result.split(',')[1]);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyze(base64) {
+  scanOverlay.classList.remove('active');
+  loadingOverlay.classList.add('active');
+
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { text: PROMPT },
+          { inline_data: { mime_type: 'image/jpeg', data: base64 } }
+        ]}]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      parsed = { emoji: '📍', title: 'Here\'s what I found', body: raw };
+    }
+
+    document.getElementById('resultEmoji').textContent = parsed.emoji || '📍';
+    document.getElementById('resultTitle').textContent = parsed.title || '';
+    document.getElementById('resultBody').textContent = parsed.body || '';
+
+    hasUsed = true;
+    cameraArea.style.display = 'none';
+    controlsBar.style.display = 'none';
+    resultScreen.classList.add('visible');
+
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+
+  } catch(e) {
+    showError('Network error. Please try again.');
+    scanOverlay.classList.add('active');
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+  setTimeout(() => { errorMsg.style.display = 'none'; }, 4000);
+}
+</script>
