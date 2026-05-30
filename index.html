@@ -223,7 +223,7 @@ const LANG_CONFIG = {
     usedTitle: 'Download KOIN for unlimited access',
     usedBody: 'You\'ve used your free scan. Download the app to keep exploring Korea!',
     usedBtn: 'Download for free →',
-    downloadSub: '24/7 Korea community Q&A & the latest card news — all in one app!',
+    downloadSub: '24/7 Korea community Q&A & the latest card news\n— all in one app!',
   },
   zh: {
     prompt: `您是一位为外国游客提供服务的韩国旅游向导。请分析这张图片，并用以下JSON格式以中文回答（不含Markdown，不含反引号）:
@@ -433,7 +433,7 @@ async function analyze(base64) {
     document.getElementById('resultTitle').textContent = parsed.title || '';
     document.getElementById('resultBody').textContent = parsed.body || '';
     const sub = document.getElementById('downloadSubtitle');
-    if (sub) sub.textContent = LANG_CONFIG[currentLang].downloadSub || '';
+    if (sub) sub.innerHTML = (LANG_CONFIG[currentLang].downloadSub || '').replace(/\n/g, '<br>');
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     markUsed();
     disableControls();
